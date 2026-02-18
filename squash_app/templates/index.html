@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:sans-serif;padding:15px}
+input,button{width:100%;padding:12px;margin:6px 0;font-size:16px}
+div.suggest{background:#eee;padding:6px}
+</style>
+</head>
+<body>
+
+<h2>試合結果入力</h2>
+
+<label>勝者</label>
+<input id="winner" oninput="searchPlayer('winner','wlist')">
+<div id="wlist"></div>
+
+<label>敗者</label>
+<input id="loser" oninput="searchPlayer('loser','llist')">
+<div id="llist"></div>
+
+<label>ゲームカウント</label>
+<input id="game" placeholder="3-1">
+
+<label>ポイントスコア</label>
+<input id="points" placeholder="11-2,9-11,12-10,15-13">
+
+<button onclick="submitResult()">保存</button>
+<button onclick="location.href='/history'">履歴を見る</button>
+
+<script>
+async function searchPlayer(inputId, listId){
+  const q=document.getElementById(inputId).value;
+  if(!q)return;
+  const res=await fetch(`/search_player?q=${q}`);
+  const data=await res.json();
+  const box=document.getElementById(listId);
+  box.innerHTML="";
+  data.forEach(p=>{
+    const d=document.createElement("div");
+    d.className="suggest";
+    d.textContent=p.label;
+    d.onclick=()=>{
+      document.getElementById(inputId).value=p.label;
+      box.innerHTML="";
+    };
+    box.appendChild(d);
+  });
+}
+
+function submitResult(){
+  const text =
+    `${winner.value} bt. ${loser.value} ${game.value} ${points.value}`;
+
+  fetch("/post_result",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({text:text})
+  });
+
+  alert("保存しました\n"+text);
+}
+</script>
+
+</body>
+</html>
